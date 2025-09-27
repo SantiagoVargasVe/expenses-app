@@ -6,6 +6,9 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "clean": "rm -rf .turbo $(find . -type d -name \".turbo\")",
+    "init": "pnpm i",
+    "clean:all": "rm -rf ./.turbo/cache $(find . -type d -name \"node_modules\") $(find . -type d -name \"dist\") $(find . -type d -name \".next\")",
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
