@@ -47,6 +47,11 @@ export class UsersService {
     return user;
   }
 
+  async findById(id: string): Promise<User | null> {
+    const user = await this.usersRepository.findById(id);
+    return user ?? null;
+  }
+
   toPublicUser(user: User): PublicUser {
     return this.db.toPublicUser(user);
   }

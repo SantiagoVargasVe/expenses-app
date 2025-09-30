@@ -20,7 +20,7 @@ export class AuthController {
   login(
     @Body() _credentials: LoginAuthDto,
     @Request() req: { user: User },
-  ): Promise<{ user: PublicUser }> {
+  ): Promise<{ user: PublicUser; accessToken: string }> {
     return this.authService.login(req.user);
   }
 }

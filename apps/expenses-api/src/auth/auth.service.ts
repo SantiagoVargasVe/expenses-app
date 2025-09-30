@@ -3,10 +3,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PublicUser, User } from '../database/schemas/users.schema';
 import { UsersService } from '../users/users.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly tokenService: TokenService,
+  ) {}
 
   async register(input: RegisterAuthDto): Promise<PublicUser> {
     if (!input.email || !input.password) {
@@ -27,9 +31,15 @@ export class AuthService {
     return this.usersService.validateCredentials(email, password);
   }
 
-  async login(user: User): Promise<{ user: PublicUser }> {
+  async login(
+    user: User,
+  ): Promise<{ user: PublicUser; accessToken: string }> {
+    const payload = { sub: user.id, email: user.email };
+    const token = this.tokenService.sign(payload);
+
     return {
       user: this.usersService.toPublicUser(user),
+      accessToken: token,
     };
   }
 }
