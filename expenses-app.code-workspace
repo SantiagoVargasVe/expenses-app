@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "Expenses Root",
+      "path": ".",
+    },
+    {
+      "name": "💾 Expenses API",
+      "path": "apps/expenses-api",
+    },
+    {
+      "name": "👾 Web App",
+      "path": "apps/web",
+    },
+    {
+      "name": "✍🏻 Config",
+      "path": "packages/typescript-config",
+    }
+  ]
+}
