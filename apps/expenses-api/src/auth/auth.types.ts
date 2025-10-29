@@ -15,3 +15,7 @@ export interface AuthTokens {
 export interface AuthResult extends AuthTokens {
   user: AuthenticatedUser;
 }
+
+export interface AuthResponse {
+  user: AuthenticatedUser;
+}

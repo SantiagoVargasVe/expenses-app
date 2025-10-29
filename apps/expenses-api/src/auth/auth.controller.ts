@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -14,22 +15,39 @@ import { Roles } from './decorators/roles.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
-import type { AuthResult, AuthenticatedUser } from './auth.types';
+import type { Response } from 'express';
+import {
+  ACCESS_TOKEN_COOKIE_NAME,
+  ACCESS_TOKEN_COOKIE_OPTIONS,
+} from './auth.constants';
+import type { AuthenticatedUser, AuthResponse } from './auth.types';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResult> {
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthResponse> {
+    const result = await this.authService.register(registerDto);
+    this.setAuthCookie(response, result.accessToken);
+
+    return { user: result.user };
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@ActiveUser() user: AuthenticatedUser): Promise<AuthResult> {
-    return this.authService.login(user);
+  async login(
+    @ActiveUser() user: AuthenticatedUser,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthResponse> {
+    const result = await this.authService.login(user);
+    this.setAuthCookie(response, result.accessToken);
+
+    return { user: result.user };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -43,5 +61,13 @@ export class AuthController {
   @Get('admin/ping')
   adminPing(): { message: string } {
     return { message: 'pong' };
+  }
+
+  private setAuthCookie(response: Response, token: string): void {
+    response.cookie(
+      ACCESS_TOKEN_COOKIE_NAME,
+      token,
+      ACCESS_TOKEN_COOKIE_OPTIONS,
+    );
   }
 }
