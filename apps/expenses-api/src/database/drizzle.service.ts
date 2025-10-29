@@ -15,14 +15,6 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
   constructor() {}
 
   onModuleInit() {
-    // this.pool = new Pool({
-    //   host: this.config.get<string>('DB_HOST', 'localhost'),
-    //   port: parseInt(this.config.get<string>('DB_PORT', '5432')),
-    //   user: this.config.get<string>('DB_USER', 'postgres'),
-    //   password: this.config.get<string>('DB_PASSWORD', 'postgres'),
-    //   database: this.config.get<string>('DB_NAME', 'appdb'),
-    // });
-
     this.pool = new Pool({
       host: 'localhost',
       port: 5432,
