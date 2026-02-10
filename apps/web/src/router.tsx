@@ -5,6 +5,6 @@ import { authRoutes } from "./modules/auth/route";
 export const router = createBrowserRouter([
   {
     path: "/",
-    children: [{ index: true, element: <LandingPage /> }, authRoutes],
+    children: [{ index: true, element: <LandingPage /> }, ...authRoutes],
   },
 ]);
