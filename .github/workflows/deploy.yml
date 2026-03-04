@@ -69,9 +69,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -euxo pipefail
-            mkdir -p /opt/expenses-app
+            sudo mkdir -p /opt/expenses-app
 
-            cat >/opt/expenses-app/.env <<EOF
+            sudo tee /opt/expenses-app/.env >/dev/null <<EOF
             API_IMAGE=${ECR_REGISTRY}/expenses-api:${IMAGE_TAG}
             WEB_IMAGE=${ECR_REGISTRY}/expenses-web:${IMAGE_TAG}
             POSTGRES_USER=${DB_USER}
@@ -82,7 +82,7 @@ jobs:
             APP_ORIGIN=${APP_ORIGIN}
             EOF
 
-            cat >/opt/expenses-app/docker-compose.yml <<'EOF'
+            sudo tee /opt/expenses-app/docker-compose.yml >/dev/null <<'EOF'
             services:
               db:
                 image: postgres:16-alpine
@@ -127,7 +127,7 @@ jobs:
               pgdata:
             EOF
 
-            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-            docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env pull
-            docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env up -d --remove-orphans
-            docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate
+            aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REGISTRY}
+            sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env pull
+            sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env up -d --remove-orphans
+            sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate
