@@ -15,6 +15,10 @@
     {
       "name": "✍🏻 Config",
       "path": "packages/typescript-config",
+    },
+    {
+      "name": "Infra",
+      "path": "packages/iac",
     }
   ]
 }
