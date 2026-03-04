@@ -167,4 +167,14 @@ jobs:
 
             compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env pull
             compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env up -d --remove-orphans
-            compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate
+
+            attempt=1
+            max_attempts=12
+            until compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate; do
+              if [ "${attempt}" -ge "${max_attempts}" ]; then
+                echo "Migration failed after ${max_attempts} attempts" >&2
+                exit 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 5
+            done
