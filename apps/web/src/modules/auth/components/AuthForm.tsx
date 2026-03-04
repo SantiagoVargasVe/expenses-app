@@ -9,6 +9,7 @@ interface AuthFormProps {
   mode: AuthFormMode;
   isSubmitting?: boolean;
   serverError?: string | null;
+  serverFieldErrors?: Partial<Record<AuthFormField, string>>;
   additionalActions?: ReactNode;
   passwordAutoComplete?: "current-password" | "new-password";
 }
@@ -19,6 +20,7 @@ export function AuthForm({
   mode,
   isSubmitting,
   serverError,
+  serverFieldErrors,
   additionalActions,
   passwordAutoComplete,
 }: AuthFormProps) {
@@ -27,6 +29,10 @@ export function AuthForm({
     passwordAutoComplete ?? (mode === "signup" ? "new-password" : "current-password");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  const emailError = form.errors.email ?? serverFieldErrors?.email;
+  const passwordError = form.errors.password ?? serverFieldErrors?.password;
+  const confirmPasswordError =
+    form.errors.confirmPassword ?? serverFieldErrors?.confirmPassword;
 
   return (
     <form
@@ -52,8 +58,8 @@ export function AuthForm({
           onBlur={() => form.handleBlur("email")}
           disabled={isSubmitting}
         />
-        {form.errors.email ? (
-          <p className="text-xs text-error-500">{form.errors.email}</p>
+        {emailError ? (
+          <p className="text-xs text-error-500">{emailError}</p>
         ) : null}
       </div>
 
@@ -95,8 +101,8 @@ export function AuthForm({
             </span>
           </button>
         </div>
-        {form.errors.password ? (
-          <p className="text-xs text-error-500">{form.errors.password}</p>
+        {passwordError ? (
+          <p className="text-xs text-error-500">{passwordError}</p>
         ) : null}
       </div>
 
@@ -147,8 +153,8 @@ export function AuthForm({
               </span>
             </button>
           </div>
-          {form.errors.confirmPassword ? (
-            <p className="text-xs text-error-500">{form.errors.confirmPassword}</p>
+          {confirmPasswordError ? (
+            <p className="text-xs text-error-500">{confirmPasswordError}</p>
           ) : null}
         </div>
       ) : null}

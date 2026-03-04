@@ -20,3 +20,21 @@ export function loginUser(payload: LoginPayload): Promise<AuthResponse> {
     body: payload,
   });
 }
+
+export function refreshSession(): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>(`${AUTH_ENDPOINT}/refresh`, {
+    method: "POST",
+    skipAuthRefresh: true,
+  });
+}
+
+export function logoutUser(): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`${AUTH_ENDPOINT}/logout`, {
+    method: "POST",
+    skipAuthRefresh: true,
+  });
+}
+
+export function getCurrentUser(): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>(`${AUTH_ENDPOINT}/me`);
+}

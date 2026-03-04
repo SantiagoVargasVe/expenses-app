@@ -2,10 +2,12 @@ import { Link, useNavigate } from "react-router";
 import { AuthForm } from "./components/AuthForm";
 import { AuthPageLayout } from "./components/AuthPageLayout";
 import { useLoginMutation } from "./hooks";
+import { getFieldErrors } from "../../lib/api-errors";
 
 export function Login() {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
+  const serverFieldErrors = getFieldErrors(loginMutation.error);
 
   return (
     <AuthPageLayout
@@ -28,9 +30,10 @@ export function Login() {
         mode="login"
         isSubmitting={loginMutation.isPending}
         serverError={loginMutation.error?.message ?? null}
+        serverFieldErrors={serverFieldErrors}
         onSubmit={async (values) => {
           await loginMutation.mutateAsync(values);
-          navigate("/");
+          navigate("/dashboard");
         }}
       />
     </AuthPageLayout>

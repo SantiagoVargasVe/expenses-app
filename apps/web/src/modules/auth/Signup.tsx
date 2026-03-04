@@ -2,10 +2,12 @@ import { Link, useNavigate } from "react-router";
 import { AuthForm } from "./components/AuthForm";
 import { AuthPageLayout } from "./components/AuthPageLayout";
 import { useRegisterMutation } from "./hooks";
+import { getFieldErrors } from "../../lib/api-errors";
 
 export function Signup() {
   const navigate = useNavigate();
   const registerMutation = useRegisterMutation();
+  const serverFieldErrors = getFieldErrors(registerMutation.error);
 
   return (
     <AuthPageLayout
@@ -28,10 +30,11 @@ export function Signup() {
         mode="signup"
         isSubmitting={registerMutation.isPending}
         serverError={registerMutation.error?.message ?? null}
+        serverFieldErrors={serverFieldErrors}
         passwordAutoComplete="new-password"
         onSubmit={async ({ email, password }) => {
           await registerMutation.mutateAsync({ email, password });
-          navigate("/");
+          navigate("/dashboard");
         }}
       />
     </AuthPageLayout>

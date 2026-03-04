@@ -12,6 +12,7 @@
 - Run lint rules: `pnpm --filter web lint`
 - Format sources: `pnpm format`
 - Type check (workspace wide): `pnpm check-types`
+- Always add or update tests for any production code changes. If tests are not feasible, document why in the PR/notes.
 
 ## Key paths
 

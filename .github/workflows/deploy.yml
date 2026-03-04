@@ -1,0 +1,133 @@
+name: Deploy (Option A)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push API image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f apps/expenses-api/Dockerfile -t "$ECR_REGISTRY/expenses-api:$IMAGE_TAG" .
+          docker push "$ECR_REGISTRY/expenses-api:$IMAGE_TAG"
+
+      - name: Build and push Web image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f apps/web/Dockerfile \
+            --build-arg VITE_API_URL=/api/v1 \
+            -t "$ECR_REGISTRY/expenses-web:$IMAGE_TAG" .
+          docker push "$ECR_REGISTRY/expenses-web:$IMAGE_TAG"
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+          APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euxo pipefail
+            mkdir -p /opt/expenses-app
+
+            cat >/opt/expenses-app/.env <<EOF
+            API_IMAGE=${ECR_REGISTRY}/expenses-api:${IMAGE_TAG}
+            WEB_IMAGE=${ECR_REGISTRY}/expenses-web:${IMAGE_TAG}
+            POSTGRES_USER=${DB_USER}
+            POSTGRES_PASSWORD=${DB_PASSWORD}
+            POSTGRES_DB=${DB_NAME}
+            DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+            JWT_SECRET=${JWT_SECRET}
+            APP_ORIGIN=${APP_ORIGIN}
+            EOF
+
+            cat >/opt/expenses-app/docker-compose.yml <<'EOF'
+            services:
+              db:
+                image: postgres:16-alpine
+                restart: unless-stopped
+                environment:
+                  POSTGRES_DB: ${POSTGRES_DB}
+                  POSTGRES_USER: ${POSTGRES_USER}
+                  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+                volumes:
+                  - pgdata:/var/lib/postgresql/data
+
+              api:
+                image: ${API_IMAGE}
+                restart: unless-stopped
+                environment:
+                  NODE_ENV: production
+                  PORT: 3000
+                  JWT_SECRET: ${JWT_SECRET}
+                  CORS_ORIGINS: ${APP_ORIGIN}
+                  DATABASE_URL: ${DATABASE_URL}
+                depends_on:
+                  - db
+
+              migrate:
+                image: ${API_IMAGE}
+                depends_on:
+                  - db
+                environment:
+                  NODE_ENV: production
+                  DATABASE_URL: ${DATABASE_URL}
+                command: ["pnpm", "--filter", "expenses-api", "db:migrate"]
+
+              web:
+                image: ${WEB_IMAGE}
+                restart: unless-stopped
+                ports:
+                  - "80:80"
+                depends_on:
+                  - api
+
+            volumes:
+              pgdata:
+            EOF
+
+            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+            docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env pull
+            docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env up -d --remove-orphans
+            docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate

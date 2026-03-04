@@ -42,6 +42,7 @@ Non-goals (V1):
 - Business logic lives in services; controllers should be thin.
 - Use DTOs + validation (class-validator) at the edge.
 - Use explicit enums for transaction kinds, account types, recurring types/status.
+- Always add or update tests for any production code changes. If tests are not feasible, document why in the PR/notes.
 
 ### IDs & timestamps
 

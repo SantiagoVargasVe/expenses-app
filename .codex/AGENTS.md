@@ -12,6 +12,7 @@
 - Workspace lint: `pnpm lint`
 - Workspace type check: `pnpm check-types`
 - Format sources: `pnpm format`
+- Always add or update tests for any production code changes. If tests are not feasible, document why in the PR/notes.
 
 ## Project layout
 
