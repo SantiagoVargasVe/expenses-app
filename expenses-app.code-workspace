@@ -17,7 +17,7 @@
       "path": "packages/typescript-config",
     },
     {
-      "name": "Infra",
+      "name": "🤖Infra",
       "path": "packages/iac",
     }
   ]
