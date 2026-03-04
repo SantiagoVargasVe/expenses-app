@@ -5,9 +5,11 @@ RUN corepack enable
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages ./packages
-COPY apps/web ./apps/web
+COPY apps/web/package.json ./apps/web/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter web...
+
+COPY apps/web ./apps/web
 
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}

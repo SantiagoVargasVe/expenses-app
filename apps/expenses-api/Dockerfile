@@ -5,9 +5,11 @@ RUN corepack enable
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages ./packages
-COPY apps/expenses-api ./apps/expenses-api
+COPY apps/expenses-api/package.json ./apps/expenses-api/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter expenses-api...
+
+COPY apps/expenses-api ./apps/expenses-api
 RUN pnpm --filter expenses-api build
 
 WORKDIR /app/apps/expenses-api

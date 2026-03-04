@@ -28,7 +28,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
-    command: ["pnpm", "--filter", "expenses-api", "db:migrate"]
+    command: ["pnpm", "db:migrate"]
 
   web:
     image: ${WEB_IMAGE}
