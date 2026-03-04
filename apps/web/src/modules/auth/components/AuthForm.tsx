@@ -1,6 +1,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import type { AuthFormMode, AuthFormValues } from "../useAuthForm";
+import type { AuthFormField, AuthFormMode, AuthFormValues } from "../useAuthForm";
 import { useAuthForm } from "../useAuthForm";
 
 interface AuthFormProps {
