@@ -129,9 +129,34 @@ jobs:
             EOF
 
             aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REGISTRY}
-            if ! sudo docker compose version >/dev/null 2>&1; then
-              sudo dnf install -y docker-compose-plugin
-            fi
-            sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env pull
-            sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env up -d --remove-orphans
-            sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate
+            compose() {
+              if sudo docker compose version >/dev/null 2>&1; then
+                sudo docker compose "$@"
+                return
+              fi
+
+              if ! command -v docker-compose >/dev/null 2>&1; then
+                arch="$(uname -m)"
+                if [ "${arch}" = "aarch64" ]; then
+                  compose_arch="aarch64"
+                elif [ "${arch}" = "x86_64" ]; then
+                  compose_arch="x86_64"
+                else
+                  echo "Unsupported architecture: ${arch}" >&2
+                  exit 1
+                fi
+
+                if ! command -v curl >/dev/null 2>&1; then
+                  sudo dnf install -y curl
+                fi
+
+                sudo curl -fsSL "https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-${compose_arch}" -o /usr/local/bin/docker-compose
+                sudo chmod +x /usr/local/bin/docker-compose
+              fi
+
+              sudo docker-compose "$@"
+            }
+
+            compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env pull
+            compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env up -d --remove-orphans
+            compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate
