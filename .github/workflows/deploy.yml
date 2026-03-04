@@ -129,6 +129,9 @@ jobs:
             EOF
 
             aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REGISTRY}
+            if ! sudo docker compose version >/dev/null 2>&1; then
+              sudo dnf install -y docker-compose-plugin
+            fi
             sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env pull
             sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env up -d --remove-orphans
             sudo docker compose -f /opt/expenses-app/docker-compose.yml --env-file /opt/expenses-app/.env run --rm migrate
