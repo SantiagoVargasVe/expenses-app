@@ -133,6 +133,7 @@ jobs:
             DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
             JWT_SECRET=${JWT_SECRET}
             APP_ORIGIN=${APP_ORIGIN}
+            AUTH_COOKIE_SECURE=false
             EOF
 
             sudo tee /opt/expenses-app/docker-compose.yml >/dev/null <<'EOF'
@@ -153,6 +154,7 @@ jobs:
                 environment:
                   NODE_ENV: production
                   PORT: 3000
+                  AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE}
                   JWT_SECRET: ${JWT_SECRET}
                   CORS_ORIGINS: ${APP_ORIGIN}
                   DATABASE_URL: ${DATABASE_URL}

@@ -18,17 +18,19 @@ export const REFRESH_TOKEN_TTL_MS =
     ? refreshTokenTtlDays * 24 * 60 * 60 * 1000
     : 30 * 24 * 60 * 60 * 1000;
 
+const authCookieSecure = process.env.AUTH_COOKIE_SECURE === 'true';
+
 export const ACCESS_TOKEN_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  secure: authCookieSecure,
   path: '/',
 };
 
 export const REFRESH_TOKEN_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  secure: authCookieSecure,
   path: '/api/v1/auth',
   maxAge: REFRESH_TOKEN_TTL_MS,
 };

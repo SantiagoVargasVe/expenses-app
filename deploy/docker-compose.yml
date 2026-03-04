@@ -15,6 +15,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGINS: ${APP_ORIGIN}
       DATABASE_URL: ${DATABASE_URL}
